@@ -5,13 +5,14 @@ import 'package:provider/provider.dart';
 import '../models/task.dart';
 import '../providers/tasks_provider.dart';
 
+// Home Screen Main Widget
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final tasksProvider = Provider.of<TasksProvider>(context);
-    final tasks = tasksProvider.tasks;
+    final tasksProvider = Provider.of<TaskNotifier>(context);
+    final tasks = tasksProvider.state;
     final pendingCount = tasks
         .where(
             (task) => !task.isCompleted && task.dueDate.isAfter(DateTime.now()))
@@ -23,26 +24,30 @@ class HomeScreen extends StatelessWidget {
         .length;
 
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFFFFF), // Background color
+      backgroundColor: const Color(0xFFFFFFFF),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Full-width top panel with gradient
           Container(
             width: screenWidth,
-            padding:
-                const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 20),
+            padding: EdgeInsets.only(
+                left: screenWidth * 0.05,
+                right: screenWidth * 0.05,
+                top: screenHeight * 0.03,
+                bottom: screenHeight * 0.02),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Color(0xFF262E6E), Color(0xFF4154F1)],
+                colors: [Color(0xFF003A86), Color(0xFF046EE5)],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
             ),
             child: const Column(
@@ -58,35 +63,51 @@ class HomeScreen extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 7),
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: screenHeight * 0.03),
+
           // Task list title
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.03),
             child: Container(
+              alignment: Alignment.center,
+              width: screenWidth * 0.48,
+              height: screenHeight * 0.07,
               decoration: BoxDecoration(
-                color: Color(0xFF262E6E), // New background color
-                borderRadius: BorderRadius.circular(20), // Rounded edges
+                color: const Color(0xFF046EE5),
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 3,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.04,
+                  vertical: screenHeight * 0.015),
               child: const Text(
-                "My Tasks",
+                textAlign: TextAlign.center,
+                "Most Recent Tasks",
                 style: TextStyle(
                   fontFamily: 'SF Pro Rounded',
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white, // Text color to contrast with background
+                  color: Colors.white,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: screenHeight * 0.02),
+
           // Scrollable task cards
           SizedBox(
-            height: 300, // Height of the task cards
+            height: screenHeight * 0.3,
+            width: screenWidth,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: tasks.length,
@@ -95,10 +116,22 @@ class HomeScreen extends StatelessWidget {
               },
             ),
           ),
-          // Task Overview
-          const SizedBox(height: 20),
+
+          // Horizontal line as a break
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: EdgeInsets.symmetric(
+              vertical: screenHeight * 0.057,
+              horizontal: screenWidth * 0.15,
+            ),
+            child: const Divider(
+              color: Colors.grey,
+              thickness: 1.5,
+            ),
+          ),
+
+          // Task Overview
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -120,115 +153,47 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// Task overview card Widget
-class _StatsCard extends StatelessWidget {
-  final String title;
-  final int count;
-  final Color color;
-
-  const _StatsCard({
-    Key? key,
-    required this.title,
-    required this.count,
-    required this.color,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 110, // Fixed width for each card
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20), // Rounded edges
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            count.toString(),
-            style: const TextStyle(
-              fontFamily: 'SF Pro Rounded',
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          SizedBox(
+            height: screenHeight * 0.02,
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+            child: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (_) {
+                      return const TaskAddModal();
+                    },
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF046EE5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                  fixedSize: Size(screenWidth, screenHeight * 0.08),
+                  elevation: 6, // Shadow for the button
+                  shadowColor: Colors.grey.withOpacity(0.5),
+                ),
+                child: const Text(
+                  "Add Task",
+                  style: TextStyle(
+                    fontFamily: 'SF Pro Rounded',
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              fontFamily: 'SF Pro Rounded',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white70,
-            ),
-          ),
+          Padding(padding: EdgeInsets.only(top: screenHeight * 0.02))
         ],
-      ),
-    );
-  }
-}
-
-// Task Details Screen Widget
-class TaskDetailScreen extends StatelessWidget {
-  final Task task;
-
-  const TaskDetailScreen({Key? key, required this.task}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF262E6E),
-        title: const Text("Task Details"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontFamily: 'SF Pro Rounded',
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Due Date: ${task.dueDate.toString().split(' ')[0]}",
-              style: const TextStyle(
-                fontFamily: 'SF Pro Rounded',
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Details:",
-              style: TextStyle(
-                fontFamily: 'SF Pro Rounded',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              task.description ?? "No details available.",
-              style: const TextStyle(
-                fontFamily: 'SF Pro Rounded',
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -238,10 +203,12 @@ class TaskDetailScreen extends StatelessWidget {
 class _TaskCard extends StatelessWidget {
   final Task task;
 
-  const _TaskCard({Key? key, required this.task}) : super(key: key);
+  const _TaskCard({super.key, required this.task});
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -253,15 +220,11 @@ class _TaskCard extends StatelessWidget {
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12.0),
-        width: 200,
-        height: 275,
+        width: screenWidth * 0.48,
+        height: screenHeight * 0.3,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF262E6E), Color(0xFF4154F1)],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: Color(0xFF003A86),
+          borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -296,6 +259,235 @@ class _TaskCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Task overview card Widget
+class _StatsCard extends StatelessWidget {
+  final String title;
+  final int count;
+  final Color color;
+
+  const _StatsCard({
+    super.key,
+    required this.title,
+    required this.count,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 110,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 3,
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            count.toString(),
+            style: const TextStyle(
+              fontFamily: 'SF Pro Rounded',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'SF Pro Rounded',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white70,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Task Details Screen Widget
+class TaskDetailScreen extends StatelessWidget {
+  final Task task;
+
+  const TaskDetailScreen({super.key, required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF003A86),
+        foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(
+          fontFamily: 'SF Pro Rounded',
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+        title: const Text("Task Details"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              task.title,
+              style: const TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Due Date: ${task.dueDate.toString().split(' ')[0]}",
+              style: const TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 40),
+            const Text(
+              "Details:",
+              style: TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              task.description ?? "No details available.",
+              style: const TextStyle(
+                fontFamily: 'SF Pro Rounded',
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Task Add Widget
+class TaskAddModal extends StatefulWidget {
+  const TaskAddModal({super.key});
+
+  @override
+  _TaskAddModalState createState() => _TaskAddModalState();
+}
+
+class _TaskAddModalState extends State<TaskAddModal> {
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  DateTime? _dueDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Add New Task",
+            style: TextStyle(
+              fontFamily: 'SF Pro Rounded',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Task Title'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a task title';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration:
+                      const InputDecoration(labelText: 'Task Description'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a task description';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () async {
+                    _dueDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    setState(() {});
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(labelText: 'Due Date'),
+                    child: Text(
+                      _dueDate == null
+                          ? 'Select Date'
+                          : DateFormat('yyyy-MM-dd').format(_dueDate!),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      // Process the task details here
+                      final task = Task(
+                        title: _titleController.text,
+                        description: _descriptionController.text,
+                        dueDate: _dueDate ?? DateTime.now(),
+                        id: '',
+                      );
+
+                      // Add the task to the provider or save it as needed
+                      Provider.of<TaskNotifier>(context, listen: false)
+                          .addTask(task);
+
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('Add Task'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

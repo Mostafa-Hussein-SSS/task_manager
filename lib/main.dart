@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import './src/providers/tasks_provider.dart';
 import './src/screens/home_screen.dart';
 import './src/screens/profile_screen.dart';
-import './src/screens/reports_screen.dart';
 import './src/screens/tasks_screen.dart';
 
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => TasksProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -80,7 +71,15 @@ class _MainNavigationState extends State<MainNavigation> {
     HomeScreen(),
     TasksScreen(),
     ProfileScreen(),
-    ReportsScreen(),
+  ];
+
+  static const List<Color> _colors = [
+    Color(0xFF003A86),
+    Color(0xFF046EE5),
+    Color(0xFF1E6521),
+    Color(0xFF4CAF50),
+    Color(0xFF262E6E),
+    Color(0xFF4154F1),
   ];
 
   void _onItemTapped(int index) {
@@ -91,43 +90,64 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.indigo,
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(
-          fontFamily: 'SF Pro Rounded',
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(
+            left: screenWidth * 0.05,
+            right: screenWidth * 0.05,
+            top: screenHeight * 0.00,
+            bottom: screenHeight * 0.007),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              _colors[(_selectedIndex * 2)],
+              _colors[(_selectedIndex * 2) + 1]
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-        unselectedLabelStyle: const TextStyle(
-          fontFamily: 'SF Pro Rounded',
-          fontWeight: FontWeight.normal,
-          fontSize: 14,
+        child: BottomNavigationBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          currentIndex: _selectedIndex,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white,
+          selectedLabelStyle: TextStyle(
+            fontFamily: 'SF Pro Rounded',
+            fontWeight: FontWeight.bold,
+            fontSize: screenWidth * 0.045,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontFamily: 'SF Pro Rounded',
+            fontWeight: FontWeight.normal,
+            fontSize: screenWidth * 0.035,
+          ),
+          items: const [
+            BottomNavigationBarItem(
+              icon: ImageIcon(AssetImage('lib/assets/icons/home.png')),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: ImageIcon(AssetImage('lib/assets/icons/task.png')),
+              label: 'Tasks',
+            ),
+            BottomNavigationBarItem(
+              icon: ImageIcon(AssetImage('lib/assets/icons/profile.png')),
+              label: 'Profile',
+            ),
+          ],
         ),
-        items: const [
-          BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('lib/assets/icons/home.png')),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('lib/assets/icons/task.png')),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-              icon: ImageIcon(AssetImage('lib/assets/icons/report.png')),
-              label: 'Reports'),
-          BottomNavigationBarItem(
-            icon: ImageIcon(AssetImage('lib/assets/icons/profile.png')),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

@@ -1,67 +1,69 @@
-import 'package:flutter/material.dart';
+// lib/providers/tasks_provider.dart
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/task.dart';
 
-class TasksProvider with ChangeNotifier {
-  final List<Task> _tasks = [
-    // Sample tasks
-    Task(
-      id: '1',
-      title: 'Complete Project Report',
-      description: 'Finish the final project report for submission.',
-      dueDate: DateTime.now().add(Duration(days: 3)),
-      priority: 'High',
-      isCompleted: false,
-    ),
-    Task(
-      id: '2',
-      title: 'Team Meeting',
-      description: 'Discuss project milestones with the team.',
-      dueDate: DateTime.now().add(Duration(days: 1)),
-      priority: 'Medium',
-      isCompleted: true,
-    ),
-    Task(
-      id: '3',
-      title: 'Submit Assignment',
-      description: 'Submit the weekly assignment before the deadline.',
-      dueDate: DateTime.now().subtract(Duration(days: 2)), // Overdue
-      priority: 'Low',
-      isCompleted: false,
-    ),
-  ];
-
-  List<Task> get tasks => [..._tasks];
+// Use StateNotifier to manage the task list
+class TaskNotifier extends StateNotifier<List<Task>> {
+  TaskNotifier() : super([]);
 
   // Add a new task
   void addTask(Task task) {
-    _tasks.add(task);
-    notifyListeners();
+    state = [...state, task]; // Update state with new task
   }
 
-  // Mark a task as completed
-  void completeTask(String id) {
-    final index = _tasks.indexWhere((task) => task.id == id);
-    if (index != -1) {
-      _tasks[index].isCompleted = true;
-      notifyListeners();
-    }
+  // Mark a task as completed or incomplete
+  void toggleCompletion(String id) {
+    state = state.map((task) {
+      if (task.id == id) {
+        return task.copyWith(isCompleted: !task.isCompleted);
+      }
+      return task;
+    }).toList();
   }
 
-  // Remove a task
+  // Remove a task by ID
   void removeTask(String id) {
-    _tasks.removeWhere((task) => task.id == id);
-    notifyListeners();
+    state = state.where((task) => task.id != id).toList();
   }
 
-  // Filter tasks by priority
-  List<Task> getTasksByPriority(String priority) {
-    return _tasks.where((task) => task.priority == priority).toList();
+  // Get filtered and sorted tasks
+  List<Task> getFilteredAndSortedTasks({
+    required String query,
+    required String filterStatus,
+    required bool sortByDueDate,
+  }) {
+    List<Task> filteredTasks = state.where((task) {
+      bool matchesQuery =
+          task.title.toLowerCase().contains(query.toLowerCase());
+      bool matchesStatus = filterStatus == 'All' ||
+          (filterStatus == 'Pending' && !task.isCompleted) ||
+          (filterStatus == 'Completed' && task.isCompleted) ||
+          (filterStatus == 'Overdue' &&
+              task.dueDate.isBefore(DateTime.now()) &&
+              !task.isCompleted);
+      return matchesQuery && matchesStatus;
+    }).toList();
+
+    // Sort by due date if requested
+    if (sortByDueDate) {
+      filteredTasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+    }
+
+    // Ensure completed tasks are at the end
+    filteredTasks.sort((a, b) {
+      if (a.isCompleted && !b.isCompleted) return 1;
+      if (!a.isCompleted && b.isCompleted) return -1;
+      return 0;
+    });
+
+    return filteredTasks;
   }
 
   // Get count of pending tasks
   int get pendingTasksCount {
-    return _tasks
+    return state
         .where(
             (task) => !task.isCompleted && task.dueDate.isAfter(DateTime.now()))
         .length;
@@ -69,14 +71,18 @@ class TasksProvider with ChangeNotifier {
 
   // Get count of completed tasks
   int get completedTasksCount {
-    return _tasks.where((task) => task.isCompleted).length;
+    return state.where((task) => task.isCompleted).length;
   }
 
   // Get count of overdue tasks
   int get overdueTasksCount {
-    return _tasks
+    return state
         .where((task) =>
             !task.isCompleted && task.dueDate.isBefore(DateTime.now()))
         .length;
   }
 }
+
+// Define a provider using StateNotifierProvider to expose TaskNotifier
+final taskProvider =
+    StateNotifierProvider<TaskNotifier, List<Task>>((ref) => TaskNotifier());

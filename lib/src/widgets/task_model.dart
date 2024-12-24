@@ -35,14 +35,6 @@ class TaskCard extends StatelessWidget {
             color: task.isCompleted ? Colors.grey : Colors.black54,
           ),
         ),
-        leading: CircleAvatar(
-          backgroundColor: _getPriorityColor(task.priority),
-          child: Text(
-            task.priority[0], // Display the first letter of the priority
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
