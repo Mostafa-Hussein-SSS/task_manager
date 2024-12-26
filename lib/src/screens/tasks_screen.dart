@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import '../models/task.dart';
 import '../providers/tasks_provider.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
-  const TasksScreen({Key? key}) : super(key: key);
+  const TasksScreen({super.key});
 
   @override
   ConsumerState<TasksScreen> createState() => _TasksScreenState();
@@ -19,7 +18,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final tasksProvider = ref.watch(TaskNotifier as ProviderListenable);
+    final tasksProvider = ref.watch(taskProvider);
     final tasks = tasksProvider.getFilteredAndSortedTasks(
       query: _searchQuery,
       filterStatus: _filterStatus,
@@ -97,9 +96,9 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   onChanged: (value) => setState(() => _filterStatus = value!),
                   items: ["All", "Pending", "Completed", "Overdue"]
                       .map((status) => DropdownMenuItem(
-                            value: status,
-                            child: Text(status),
-                          ))
+                    value: status,
+                    child: Text(status),
+                  ))
                       .toList(),
                   icon: const Icon(Icons.filter_list),
                 ),
@@ -133,7 +132,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   elevation: 3,
                   color: task.isCompleted
                       ? Colors.green
-                          .shade200 // Green background for completed tasks
+                      .shade200 // Green background for completed tasks
                       : Colors.white,
                   child: ListTile(
                     title: Text(
@@ -157,21 +156,21 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                       children: [
                         task.isCompleted
                             ? IconButton(
-                                icon:
-                                    const Icon(Icons.close, color: Colors.red),
-                                onPressed: () {
-                                  tasksProvider.markAsPending(task.id);
-                                  setState(() {});
-                                },
-                              )
+                          icon:
+                          const Icon(Icons.close, color: Colors.red),
+                          onPressed: () {
+                            tasksProvider.toggleCompletion(task.id);
+                            setState(() {});
+                          },
+                        )
                             : IconButton(
-                                icon: const Icon(Icons.check,
-                                    color: Colors.green),
-                                onPressed: () {
-                                  tasksProvider.completeTask(task.id);
-                                  setState(() {});
-                                },
-                              ),
+                          icon: const Icon(Icons.check,
+                              color: Colors.green),
+                          onPressed: () {
+                            tasksProvider.toggleCompletion(task.id);
+                            setState(() {});
+                          },
+                        ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () {
@@ -223,10 +222,10 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            TaskDetailScreen(task: task),
+                                        builder: (context) => TaskDetailScreen(task: task),
                                       ),
                                     );
+
                                   },
                                   child: const Text('Edit'),
                                 ),
@@ -321,7 +320,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                   hintText: 'Enter task title',
                 ),
                 style:
-                    const TextStyle(fontFamily: 'SF Pro Rounded', fontSize: 18),
+                const TextStyle(fontFamily: 'SF Pro Rounded', fontSize: 18),
               ),
               const SizedBox(height: 20),
 
@@ -369,7 +368,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 ),
                 maxLines: 3,
                 style:
-                    const TextStyle(fontFamily: 'SF Pro Rounded', fontSize: 16),
+                const TextStyle(fontFamily: 'SF Pro Rounded', fontSize: 16),
               ),
               const SizedBox(height: 40),
 
@@ -379,17 +378,17 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 children: [
                   ElevatedButton(
                     onPressed: cancelEditing,
-                    child: const Text('Cancel'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                     ),
+                    child: const Text('Cancel'),
                   ),
                   ElevatedButton(
                     onPressed: saveTask,
-                    child: const Text('Save'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF003A86),
                     ),
+                    child: const Text('Save'),
                   ),
                 ],
               ),

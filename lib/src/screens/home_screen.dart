@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import '../models/task.dart';
 import '../providers/tasks_provider.dart';
 
+
 // Home Screen Main Widget
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final tasksProvider = Provider.of<TaskNotifier>(context);
-    final tasks = tasksProvider.state;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskNotifier = ref.watch(taskProvider);
+    final tasks = taskNotifier.tasks;
     final pendingCount = tasks
-        .where(
-            (task) => !task.isCompleted && task.dueDate.isAfter(DateTime.now()))
+        .where((task) => !task.isCompleted && task.dueDate.isAfter(DateTime.now()))
         .length;
     final completedCount = tasks.where((task) => task.isCompleted).length;
     final overdueCount = tasks
-        .where((task) =>
-            !task.isCompleted && task.dueDate.isBefore(DateTime.now()))
+        .where((task) => !task.isCompleted && task.dueDate.isBefore(DateTime.now()))
         .length;
 
     final screenWidth = MediaQuery.of(context).size.width;
@@ -203,7 +202,7 @@ class HomeScreen extends StatelessWidget {
 class _TaskCard extends StatelessWidget {
   final Task task;
 
-  const _TaskCard({super.key, required this.task});
+  const _TaskCard({required this.task});
 
   @override
   Widget build(BuildContext context) {
@@ -223,7 +222,7 @@ class _TaskCard extends StatelessWidget {
         width: screenWidth * 0.48,
         height: screenHeight * 0.3,
         decoration: BoxDecoration(
-          color: Color(0xFF003A86),
+          color: const Color(0xFF003A86),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Padding(
@@ -234,8 +233,8 @@ class _TaskCard extends StatelessWidget {
                 alignment: Alignment.topRight,
                 child: Text(
                   "${task.dueDate.day.toString().padLeft(2, '0')} "
-                  "${DateFormat('MMMM').format(task.dueDate)} "
-                  "${task.dueDate.year}",
+                      "${DateFormat('MMMM').format(task.dueDate)} "
+                      "${task.dueDate.year}",
                   style: const TextStyle(
                     fontFamily: 'SF Pro Rounded',
                     fontSize: 14,
@@ -263,7 +262,6 @@ class _TaskCard extends StatelessWidget {
     );
   }
 }
-
 // Task overview card Widget
 class _StatsCard extends StatelessWidget {
   final String title;
@@ -271,7 +269,6 @@ class _StatsCard extends StatelessWidget {
   final Color color;
 
   const _StatsCard({
-    super.key,
     required this.title,
     required this.count,
     required this.color,
@@ -387,14 +384,14 @@ class TaskDetailScreen extends StatelessWidget {
 }
 
 // Task Add Widget
-class TaskAddModal extends StatefulWidget {
+class TaskAddModal extends ConsumerStatefulWidget {
   const TaskAddModal({super.key});
 
   @override
-  _TaskAddModalState createState() => _TaskAddModalState();
+  ConsumerState<TaskAddModal> createState() => _TaskAddModalState();
 }
 
-class _TaskAddModalState extends State<TaskAddModal> {
+class _TaskAddModalState extends ConsumerState<TaskAddModal> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -402,6 +399,8 @@ class _TaskAddModalState extends State<TaskAddModal> {
 
   @override
   Widget build(BuildContext context) {
+    final taskNotifier = ref.read(taskProvider.notifier);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -434,7 +433,7 @@ class _TaskAddModalState extends State<TaskAddModal> {
                 TextFormField(
                   controller: _descriptionController,
                   decoration:
-                      const InputDecoration(labelText: 'Task Description'),
+                  const InputDecoration(labelText: 'Task Description'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter a task description';
@@ -467,7 +466,6 @@ class _TaskAddModalState extends State<TaskAddModal> {
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      // Process the task details here
                       final task = Task(
                         title: _titleController.text,
                         description: _descriptionController.text,
@@ -475,9 +473,7 @@ class _TaskAddModalState extends State<TaskAddModal> {
                         id: '',
                       );
 
-                      // Add the task to the provider or save it as needed
-                      Provider.of<TaskNotifier>(context, listen: false)
-                          .addTask(task);
+                      taskNotifier.addTask(task);
 
                       Navigator.pop(context);
                     }

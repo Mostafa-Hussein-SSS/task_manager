@@ -4,13 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import './src/screens/home_screen.dart';
 import './src/screens/profile_screen.dart';
 import './src/screens/tasks_screen.dart';
+import 'src/providers/tasks_provider.dart';
+
+// Define a provider for TaskNotifier
+final taskNotifierProvider = ChangeNotifierProvider<TaskNotifier>((ref) {
+  return TaskNotifier();
+});
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
+
+
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +70,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({Key? key}) : super(key: key);
+  const MainNavigation({super.key});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
